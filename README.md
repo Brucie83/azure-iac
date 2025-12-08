@@ -26,6 +26,7 @@ Boot Diagnostics
 This project demonstrates best practices in ARM/Bicep modularization, secret handling, dependency chaining, and reusable IaC patterns.
 
 ## Architecture Overview
+
 ```bash
 
 Resource Group
@@ -53,8 +54,6 @@ Resource Group
 │   └── Custom Script Extension
 │       └── init.ps1 (from GitHub)
 ```
-
-
 
 
 
