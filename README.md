@@ -26,6 +26,8 @@ Boot Diagnostics
 This project demonstrates best practices in ARM/Bicep modularization, secret handling, dependency chaining, and reusable IaC patterns.
 
 ## Architecture Overview
+```bash
+
 Resource Group
 │
 ├── Virtual Network (VNet)
@@ -37,7 +39,7 @@ Resource Group
 ├── Network Security Group (NSG)
 │
 ├── NIC
-│   ├── subnet association
+│   ├── Subnet association
 │   └── PIP association
 │
 ├── Storage Account (Boot Diagnostics)
@@ -50,6 +52,8 @@ Resource Group
 │   ├── Boot Diagnostics
 │   └── Custom Script Extension
 │       └── init.ps1 (from GitHub)
+```
+
 
 
 
@@ -57,21 +61,26 @@ Resource Group
 This modular structure ensures loose coupling, clarity, and maintainability, following cloud-native IaC standards.
 
 ## Repository Structure
+```bash
+
 azure-iac/
-│── main.bicep                 # Root orchestrator template
-│── parameters.json            # Deployment parameters
+│
+├── main.bicep                # Root orchestrator template
+├── parameters.json           # Deployment parameters
 │
 ├── modules/
-│   ├── network.bicep          # VNet + Subnet module
-│   ├── nsg.bicep              # NSG module
-│   ├── publicip.bicep         # Public IP module
-│   ├── nic.bicep              # NIC module
-│   ├── storage.bicep          # Storage Account module
-│   ├── keyvault.bicep         # Key Vault + Secret module
-│   └── vm.bicep               # Virtual Machine module
+│   ├── network.bicep         # VNet + Subnet module
+│   ├── nsg.bicep             # NSG module
+│   ├── publicip.bicep        # Public IP module
+│   ├── nic.bicep             # NIC module
+│   ├── storage.bicep         # Storage Account module
+│   ├── keyvault.bicep        # Key Vault + Secret module
+│   └── vm.bicep              # Virtual Machine module
 │
 └── scripts/
-    └── init.ps1               # Custom script executed on the VM
+    └── init.ps1              # Custom script executed on the VM
+```
+
 
 ## Secret Handling (Secure by Design)
 
