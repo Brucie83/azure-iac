@@ -59,8 +59,8 @@ jobs:
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
         run: |
-          if [ -z "$AZURE_CREDENTIALS" ]; then
-            echo "AZURE_CREDENTIALS no está configurado. Saltando paso de What-If..."
+          if [ -z "$AZURE_CREDENTIALS" ] || [ "$AZURE_CREDENTIALS" = "{}" ]; then
+            echo "AZURE_CREDENTIALS está vacío o no configurado. Saltando What-If..."
             exit 0
           fi
 
