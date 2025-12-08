@@ -47,7 +47,7 @@ jobs:
           echo "Running Bicep linte..."
           bicep lint main.bicep
 
-      - name: Azure What-if (Dry run)
+      - name: Azure What-if (Dry Run)
         if: ${{ secrets.AZURE_CREDENTIALS != '' }}
         run: |
           echo "Running Azure What-If analysis..."
