@@ -26,19 +26,20 @@ Boot Diagnostics
 This project demonstrates best practices in ARM/Bicep modularization, secret handling, dependency chaining, and reusable IaC patterns.
 
 ## Architecture Overview
-┌────────────────────────────────────────────────────────────┐
-│                         Resource Group                      │
-└────────────────────────────────────────────────────────────┘
-               |
+┌───────────────────────────────────────────────────────────────┐
+│                         Resource Group                         │
+└───────────────────────────────────────────────────────────────┘
                │
                ├── Virtual Network (VNet)
-               │      └── Subnet
+               │        └── Subnet
                │
                ├── Network Security Group (NSG)
                │
                ├── Public IP
                │
-               ├── NIC  ───── attaches NSG + subnet + PIP
+               ├── NIC
+               │        ├── attaches NSG
+               │        └── subnet + Public IP
                │
                ├── Storage Account (Boot Diagnostics)
                │
@@ -49,7 +50,8 @@ This project demonstrates best practices in ARM/Bicep modularization, secret han
                         ├── Managed Identity
                         ├── Boot Diagnostics
                         └── Custom Script Extension
-                               └── init.ps1 (from GitHub)
+                                 └── init.ps1 (from GitHub)
+
 
 
 This modular structure ensures loose coupling, clarity, and maintainability, following cloud-native IaC standards.
