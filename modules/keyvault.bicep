@@ -11,8 +11,8 @@ param adminpassword string
 @description('Nombre del secret para guardar la contraseña del admin')
 param secretName string = 'vmAdminPassword'
 
-resourse keyVault 'Microsoft.KeyVault/vaults@2023-02-01' = {
-  name: keyVault
+resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' = {
+  name: keyVaultName
   location: location
   properties: {
     sku: {
@@ -41,9 +41,8 @@ resourse keyVault 'Microsoft.KeyVault/vaults@2023-02-01' = {
 }
 
 resource secret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
-  parent: keyVault
-  name: secretName
-  properties: {
+  name: '${keyVaultName}/${secretName}'
+  properties{
     value: adminpassword
   }
 }

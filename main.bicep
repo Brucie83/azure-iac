@@ -89,10 +89,9 @@ module vm './modules/vm.bicep' = {
     vmName: vmName
     vmSize: vmSize
     adminUsername: adminUsername
-    adminPassword: reference(keyvault.outputs.secretId, '2015-06-01').value
+    adminPassword: adminPassword
     location: location
     nicId: nic.outputs.nicId
-    storageId: storage.outputs.storageId
     storageNameOut: storage.outputs.storageNameOut
   }
 }
