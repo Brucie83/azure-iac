@@ -32,7 +32,7 @@ jobs:
 
       - name: Install standalone Bicep CLI for linting
         run: |
-          curl -sL https://aka.ms/bicep/install | bash
+          wget https://github.com/Azure/bicep/releases/latest/download/bicep_linux-x64
           chmod +x bicep
           sudo mv ./bicep /usr/local/bin/bicep
           bicep --version
@@ -46,9 +46,3 @@ jobs:
           az bicep build --file main.bicep --stdout > /dev/null
           echo "Running Bicep linte..."
           bicep lint main.bicep
-
-      - name: Upload ARM Template Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: arm-template
-          path: main.json
