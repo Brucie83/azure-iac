@@ -59,23 +59,35 @@ jobs:
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
         run: |
+          echo "Validando si existe AZURE_CREDENTIALS..."
+
+          # Detectar vacío, null, o JSON "{}"
           if [ -z "$AZURE_CREDENTIALS" ] || [ "$AZURE_CREDENTIALS" = "{}" ]; then
-            echo "AZURE_CREDENTIALS está vacío o no configurado. Saltando What-If..."
+            echo "→ AZURE_CREDENTIALS está vacío o no configurado. Saltando What-If."
             exit 0
           fi
 
-          # Asegurarnos de tener jq (por si la imagen no lo trae)
+          echo "→ Se detectó un JSON. Procediendo con What-If."
+
+          # Instalar jq si no existe
           if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update && sudo apt-get install -y jq
+            sudo apt-get update -y && sudo apt-get install -y jq
           fi
 
+          # Validar si el JSON es válido
+          if ! echo "$AZURE_CREDENTIALS" | jq empty 2>/dev/null; then
+            echo "→ El valor en AZURE_CREDENTIALS NO es JSON válido. Saltando What-If."
+            exit 0
+          fi
+
+          # Extraer valores
           CLIENT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientId')
           CLIENT_SECRET=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientSecret')
           TENANT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId')
           SUBSCRIPTION_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.subscriptionId')
           RESOURCE_GROUP=$(echo "$AZURE_CREDENTIALS" | jq -r '.resourceGroup')
 
-          echo "Running Azure What-If analysis for RG: $RESOURCE_GROUP"
+          echo "Ejecutando What-If en RG: $RESOURCE_GROUP"
 
           az login --service-principal \
             -u "$CLIENT_ID" \
@@ -87,6 +99,7 @@ jobs:
           az deployment group what-if \
             --resource-group "$RESOURCE_GROUP" \
             --template-file main.bicep
+
 
 
 
