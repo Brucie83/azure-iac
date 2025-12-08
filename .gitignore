@@ -1,0 +1,58 @@
+# ============================================
+#   Azure IaC / Bicep / PowerShell Gitignore
+# ============================================
+
+# Bicep build output (ARM templates)
+*.json
+!main.parameters.json   # allow generated params file
+
+# Logs
+*.log
+*.err
+*.out
+
+# PowerShell artifacts
+*.ps1xml
+*.psc1
+*.pssc
+
+# Local environment configuration
+*.env
+.env.*
+secrets.*
+*.private
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VSCode files
+.vscode/
+.history/
+*.code-workspace
+
+# Backup files
+*.bak
+*.tmp
+*~
+
+# Node.js (if ever used for tooling)
+node_modules/
+
+# Python (if scripts later added)
+__pycache__/
+*.pyc
+
+# Terraform (in case you add TF later)
+.terraform/
+*.tfstate
+*.tfstate.backup
+crash.log
+
+# Azure CLI cached data
+.azure/
+
+# GitHub Actions artifacts
+/dist/
+coverage/

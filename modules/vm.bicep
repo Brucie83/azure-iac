@@ -51,7 +51,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
     diagnosticsProfile: {
       bootDiagnostics: {
         enabled: true
-        storageUri: 'https://${storageNameOut}.blob.core.windows.net/'
+        storageUri: 'https://${storageNameOut}.blob.${environment().suffixes.storage}/'
       }
     }
   }

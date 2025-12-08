@@ -10,6 +10,9 @@ param publicIpId string
 @description('Ubicacion donde se desplegara la NIC')
 param location string
 
+@description('ID del NSG')
+param nsgId string
+
 resource nic 'Microsoft.Network/networkInterfaces@2023-05-01' = {
   name: '${vmName}-nic'
   location: location
