@@ -26,30 +26,30 @@ Boot Diagnostics
 This project demonstrates best practices in ARM/Bicep modularization, secret handling, dependency chaining, and reusable IaC patterns.
 
 ## Architecture Overview
-┌Resource Group
+Resource Group
 │
 ├── Virtual Network (VNet)
-│      └── Subnet
-│
-├── Network Security Group (NSG)
+│   ├── Subnet
+│   └── NSG association
 │
 ├── Public IP
 │
+├── Network Security Group (NSG)
+│
 ├── NIC
-│      ├── NSG association
-│      ├── Subnet association
-│      └── Public IP association
+│   ├── subnet association
+│   └── PIP association
 │
 ├── Storage Account (Boot Diagnostics)
 │
 ├── Key Vault
-│      └── Secret: vmAdminPassword
+│   └── Secret: vmAdminPassword
 │
-└── Virtual Machine (Windows Server 2022)
-       ├── Managed Identity
-       ├── Boot Diagnostics
-       ├── Custom Script Extension
-       │      └── init.ps1 (from GitHub)
+├── Virtual Machine (Windows Server 2022)
+│   ├── Managed Identity
+│   ├── Boot Diagnostics
+│   └── Custom Script Extension
+│       └── init.ps1 (from GitHub)
 
 
 
@@ -58,20 +58,20 @@ This modular structure ensures loose coupling, clarity, and maintainability, fol
 
 ## Repository Structure
 azure-iac/
-│
-├── main.bicep                    # Root orchestrator template
+│── main.bicep                 # Root orchestrator template
+│── parameters.json            # Deployment parameters
 │
 ├── modules/
-│   ├── network.bicep             # VNet + Subnet module
-│   ├── nsg.bicep                 # NSG module
-│   ├── publicip.bicep            # Public IP module
-│   ├── nic.bicep                 # NIC module
-│   ├── storage.bicep             # Storage Account module
-│   ├── keyvault.bicep            # Key Vault + Secret module
-│   └── vm.bicep                  # Virtual Machine module
+│   ├── network.bicep          # VNet + Subnet module
+│   ├── nsg.bicep              # NSG module
+│   ├── publicip.bicep         # Public IP module
+│   ├── nic.bicep              # NIC module
+│   ├── storage.bicep          # Storage Account module
+│   ├── keyvault.bicep         # Key Vault + Secret module
+│   └── vm.bicep               # Virtual Machine module
 │
 └── scripts/
-    └── init.ps1                  # Custom script executed on the VM
+    └── init.ps1               # Custom script executed on the VM
 
 ## Secret Handling (Secure by Design)
 
