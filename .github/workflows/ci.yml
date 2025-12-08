@@ -54,3 +54,28 @@ jobs:
           az bicep build --file main.bicep --stdout > /dev/null
           echo "Running Bicep linte..."
           bicep lint main.bicep
+
+      - name: Azure What-if (Dry Run)
+        env:
+          CREDS: ${{ secrets.AZURE_CREDENTIALS }}
+        if: ${{ env.CREDS != '' }}
+        run: |
+          echo "Running Azure What-If analysis..."
+
+          CLIENT_ID=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.clientId')
+          CLIENT_SECRET=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.clientSecret')
+          TENANT_ID=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.tenantId')
+          SUBSCRIPTION_ID=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.subscriptionId')
+          RESOURCE_GROUP=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.resourceGroup')
+
+          az login --service-principal \
+            -u "$CLIENT_ID" \
+            -p "$CLIENT_SECRET" \
+            --tenant "$TENANT_ID"
+
+          az account set --subscription "$SUBSCRIPTION_ID"
+
+          az deployment group what-if \
+            --resource-group "$RESOURCE_GROUP" \
+            --template-file main.bicep
+
