@@ -26,31 +26,31 @@ Boot Diagnostics
 This project demonstrates best practices in ARM/Bicep modularization, secret handling, dependency chaining, and reusable IaC patterns.
 
 ## Architecture Overview
-┌───────────────────────────────────────────────────────────────┐
-│                         Resource Group                         │
-└───────────────────────────────────────────────────────────────┘
-               │
-               ├── Virtual Network (VNet)
-               │        └── Subnet
-               │
-               ├── Network Security Group (NSG)
-               │
-               ├── Public IP
-               │
-               ├── NIC
-               │        ├── attaches NSG
-               │        └── subnet + Public IP
-               │
-               ├── Storage Account (Boot Diagnostics)
-               │
-               ├── Key Vault
-               │        └── Secret: vmAdminPassword
-               │
-               └── Virtual Machine (Windows Server 2022)
-                        ├── Managed Identity
-                        ├── Boot Diagnostics
-                        └── Custom Script Extension
-                                 └── init.ps1 (from GitHub)
+┌Resource Group
+│
+├── Virtual Network (VNet)
+│      └── Subnet
+│
+├── Network Security Group (NSG)
+│
+├── Public IP
+│
+├── NIC
+│      ├── NSG association
+│      ├── Subnet association
+│      └── Public IP association
+│
+├── Storage Account (Boot Diagnostics)
+│
+├── Key Vault
+│      └── Secret: vmAdminPassword
+│
+└── Virtual Machine (Windows Server 2022)
+       ├── Managed Identity
+       ├── Boot Diagnostics
+       ├── Custom Script Extension
+       │      └── init.ps1 (from GitHub)
+
 
 
 
