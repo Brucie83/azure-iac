@@ -47,7 +47,7 @@ jobs:
 
       - name: Fromat Bicep files
         run: |
-          bicep format .
+          find . -name "*.bicep" -exec bicep format {} \;
 
       - name: Run Bicep Linter
         run: |
