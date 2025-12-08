@@ -32,10 +32,16 @@ jobs:
 
       - name: Install standalone Bicep CLI for linting
         run: |
-          wget https://github.com/Azure/bicep/releases/download/v0.29.47/bicep_linux-x64 -O bicep
+          LATEST_URL=$(curl -s https://api.github.com/repos/Azure/bicep/releases/latest \
+            | grep browser_download_url \
+            | grep linux-x64 \
+            | cut -d '"' -f 4)
+
+          wget "$LATEST_URL" -O bicep
           chmod +x bicep
-          sudo mv ./bicep /usr/local/bin/bicep
+          sudo mv bicep /usr/local/bin/bicep
           bicep --version
+
 
       - name: Fromat Bicep files
         run: |
