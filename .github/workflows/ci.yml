@@ -56,16 +56,27 @@ jobs:
           bicep lint main.bicep
 
       - name: Azure What-if (Dry Run)
-        if: ${{ secrets.AZURE_CREDENTIALS != '' }}
         env:
-          CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
-          CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
-          TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
-          SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
-          RESOURCE_GROUP: ${{ fromJson(secrets.AZURE_CREDENTIALS).resourceGroup }}
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
         run: |
-          echo "Running Azure What-If analysis..."
-          
+          if [ -z "$AZURE_CREDENTIALS" ]; then
+            echo "AZURE_CREDENTIALS no está configurado. Saltando paso de What-If..."
+            exit 0
+          fi
+
+          # Asegurarnos de tener jq (por si la imagen no lo trae)
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+          CLIENT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientId')
+          CLIENT_SECRET=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientSecret')
+          TENANT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId')
+          SUBSCRIPTION_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.subscriptionId')
+          RESOURCE_GROUP=$(echo "$AZURE_CREDENTIALS" | jq -r '.resourceGroup')
+
+          echo "Running Azure What-If analysis for RG: $RESOURCE_GROUP"
+
           az login --service-principal \
             -u "$CLIENT_ID" \
             -p "$CLIENT_SECRET" \
@@ -76,5 +87,6 @@ jobs:
           az deployment group what-if \
             --resource-group "$RESOURCE_GROUP" \
             --template-file main.bicep
+
 
 
