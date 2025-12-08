@@ -29,6 +29,7 @@ This project demonstrates best practices in ARM/Bicep modularization, secret han
 ┌────────────────────────────────────────────────────────────┐
 │                         Resource Group                      │
 └────────────────────────────────────────────────────────────┘
+               |
                │
                ├── Virtual Network (VNet)
                │      └── Subnet
