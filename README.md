@@ -28,7 +28,6 @@ This project demonstrates best practices in ARM/Bicep modularization, secret han
 ## Architecture Overview
 
 ```bash
-
 Resource Group
 │
 ├── Virtual Network (VNet)
@@ -41,7 +40,7 @@ Resource Group
 │
 ├── NIC
 │   ├── Subnet association
-│   └── PIP association
+│   └── Public IP association
 │
 ├── Storage Account (Boot Diagnostics)
 │
@@ -52,7 +51,7 @@ Resource Group
 │   ├── Managed Identity
 │   ├── Boot Diagnostics
 │   └── Custom Script Extension
-│       └── init.ps1 (from GitHub)
+│       └── init.ps1 (downloaded from GitHub)
 ```
 
 
@@ -64,20 +63,24 @@ This modular structure ensures loose coupling, clarity, and maintainability, fol
 
 azure-iac/
 │
-├── main.bicep                # Root orchestrator template
+├── main.bicep                # Root orchestrator
 ├── parameters.json           # Deployment parameters
 │
 ├── modules/
-│   ├── network.bicep         # VNet + Subnet module
-│   ├── nsg.bicep             # NSG module
-│   ├── publicip.bicep        # Public IP module
-│   ├── nic.bicep             # NIC module
-│   ├── storage.bicep         # Storage Account module
-│   ├── keyvault.bicep        # Key Vault + Secret module
-│   └── vm.bicep              # Virtual Machine module
+│   ├── network.bicep         # VNet + Subnet
+│   ├── nsg.bicep             # NSG
+│   ├── publicip.bicep        # Public IP
+│   ├── nic.bicep             # NIC
+│   ├── storage.bicep         # Storage Account
+│   ├── keyvault.bicep        # Key Vault + Secret
+│   └── vm.bicep              # Windows Server 2022 VM
 │
-└── scripts/
-    └── init.ps1              # Custom script executed on the VM
+├── scripts/
+│   └── init.ps1              # Custom Script Extension
+│
+└── .github/
+    └── workflows/
+        └── ci.yml            # CI pipeline: validate, format, lint, build, what-if
 ```
 
 
@@ -122,21 +125,25 @@ Register monitoring agents
 ## Deployment Instructions
 
 Before deploying, ensure you are logged into your Azure subscription:
-
+```bash
 az login
 az account set --subscription "<SUBSCRIPTION-ID>"
+```
 
 1 Create a resource group
+```bash
 az group create \
   --name rg-devops-lab \
   --location eastus
+```
 
 2 Generate the parameters file
+```bash
 az bicep generate-params -f main.bicep --out-file main.parameters.json
-
+```
 
 Fill in your admin password:
-
+```json
 {
   "parameters": {
     "adminPassword": {
@@ -144,52 +151,66 @@ Fill in your admin password:
     }
   }
 }
+```
 
 3 Deploy the infrastructure
+```bash
 az deployment group create \
   --resource-group rg-devops-lab \
   --template-file main.bicep \
   --parameters @main.parameters.json
-
-## Validation & Linting (Recommended)
-
-Validate syntax:
-
+```
+## Validation & What-If
+Build and validate Bicep
+```bash
 az bicep build -f main.bicep
+```
 
-
-Validate deployment without creating resources:
-
+What-If (Preview changes)
+```bash
 az deployment group what-if \
   --resource-group rg-devops-lab \
   --template-file main.bicep \
-  --parameters @main.parameters.json
+  --parameters @parameters.json
+```
+
+## GitHub Actions CI Pipeline (Already Implemented)
+
+The repository includes a CI workflow (ci.yml) that performs:
+
+✔ Bicep formatting
+✔ Bicep linting
+✔ Template compilation to ARM JSON
+✔ Azure What-If with support for an empty secret {}
+✔ Conditional execution when AZURE_CREDENTIALS is not defined
+
+This allows the project to be developed and validated even without an Azure subscription, avoiding pipeline failures.
 
 ## Best Practices Implemented
 
-✔ Modular Bicep Architecture
-✔ Secure secret handling via Key Vault
-✔ Dependency chaining using outputs
-✔ Custom Script Extension for post-deploy automation
-✔ Managed Identity enabled on the VM
-✔ Reusable components for future projects
-✔ Clear separation between IaC, parameters, and scripts
-✔ Boot Diagnostics with Storage Account
-✔ Production-grade naming conventions
+✔ Modular Bicep architecture
+✔ Secret handling with Key Vault
+✔ Strong separation of modules and parameters
+✔ Dependency chaining through module outputs
+✔ Reusable VM automation with Custom Script Extension
+✔ Managed Identity enabled
+✔ Production-ready naming conventions
+✔ Boot Diagnostics configured
+✔ CI pipeline with formatting/linting/what-if
 
 ## Next Improvements (optional)
 
-You can enhance this project by adding:
+Add optional deployment workflow (workflow_dispatch)
 
-Azure DevOps pipeline YAML
+Multi-environment parameters (dev/stage/prod)
 
-GitHub Actions CI workflow (build + lint + what-if)
+Environment-driven NSG rules
 
-Domain join automation
+Load Balancer / App Gateway modules
 
-Automated NSG rules based on environment (dev/stage/prod)
+Automated application bootstrap
 
-Modules for Load Balancer, App Gateway, AKS, Bastion, etc.
+Integration with Terraform / GitHub Environments
 
 ## Author
 
