@@ -1,0 +1,59 @@
+name: CI - Azure Bicep IaC
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+           
+      - name: Install bicep CLI
+        run: |
+          az bicep install
+          az bicep version
+
+      - name: Validate Bicep syntax
+        run: |
+          az bicep build -f main.bicep --outfile main.json
+
+      - name: Upload ARM Template Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm-template
+          path: main.json
+
+      - name: Install standalone Bicep CLI for linting
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep_linux-x64
+          chmod +x bicep
+          sudo mv bicep /usr/local/bin/
+          bicep --version
+
+      - name: Fromat Bicep files
+        run: |
+          bicep format .
+
+      - name: Run Bicep Linter
+        run: |
+          az bicep build --file main.bicep --stdout > /dev/null
+          echo "Running Bicep linte..."
+          bicep lint main.bicep
+
+      - name: Azure What-if (Dry run)
+        if: ${{ secrets.AZURE_CREDENTIALS }}
+        run: |
+          echo "Running Azure What-If analysis..."
+          az login --service-principal -u ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+                    -p ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+                    --tenant ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
+          az deployment group what-if \
+            --resource-group ${{ fromJson(secrets.AZURE_CREDENTIALS).resourceGroup }} \
+            --template-file main.bicep
