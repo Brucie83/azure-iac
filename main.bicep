@@ -3,7 +3,7 @@ param rgName string */
 
 
 @description('Ubicacion de los recursos')
-param location string = 'resourceGroup().location'
+param location string = resourceGroup().location
 
 @description('Nombre de la vNet')
 param vnetName string = 'dev-vnet'
