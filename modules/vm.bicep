@@ -15,13 +15,6 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
   }
 
   properties: {
-    securityProfile: {
-    securityType: 'ConfidentialVM'
-      uefiSettings: {
-        secureBootEnabled: true
-        vTpmEnabled: true
-      }
-    }
     hardwareProfile: {
       vmSize: vmSize
     }
@@ -45,7 +38,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
       imageReference: {
         publisher: 'MicrosoftWindowsServer'
         offer: 'WindowsServer'
-        sku: '2022-datacenter-g2'
+        sku: '2022-datacenter'
         version: 'latest'
       }
     }
