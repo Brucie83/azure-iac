@@ -18,7 +18,7 @@ param subnetAddress string = '10.0.1.0/24'
 param vmName string = 'dev-vm-01'
 
 @description('Tamaño de la vm')
-param vmSize string = 'Standard_DS2_v2'
+param vmSize string = 'Standard_B2s'
 
 @description('Nombre del admin de la vm')
 param adminUsername string = 'azureuser'
