@@ -93,7 +93,8 @@ jobs:
           CLIENT_SECRET=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientSecret')
           TENANT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId')
           SUBSCRIPTION_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.subscriptionId')
-          RESOURCE_GROUP=$(echo "$AZURE_CREDENTIALS" | jq -r '.resourceGroup')
+          RESOURCE_GROUP="rg-devops-lab"
+
 
           echo "Ejecutando What-If en RG: $RESOURCE_GROUP"
 
@@ -107,11 +108,12 @@ jobs:
           az deployment group what-if \
             --resource-group "$RESOURCE_GROUP" \
             --template-file main.bicep
+            --parameters @main.parameters.json
 
 
 
       - name: Deploy Bicep template
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.deploy == 'true' }}
-        run: az deployment group create --resource-group rg-devops-lab --template-file main.bicep --parameters @parameters.json
+        run: az deployment group create --resource-group rg-devops-lab --template-file main.bicep --parameters @main.parameters.json
 
 
