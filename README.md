@@ -227,7 +227,7 @@ Key points:
 - What-If execution completes without dependency errors
 - VM creation fails only due to unavailable compute SKUs
 
-In enterprise subscriptions (e.g. Globant / client-managed Azure accounts),
+In enterprise subscriptions (e.g. client-managed Azure accounts),
 where compute capacity is reserved and quotas are available, the deployment
 is expected to complete successfully without changes.
 
