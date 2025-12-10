@@ -3,6 +3,14 @@ name: CI - Azure Bicep IaC
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+        deploy:
+            description: "Run Deployment"
+            required: false
+            default: false
 
 jobs:
   build:
@@ -102,4 +110,7 @@ jobs:
 
 
 
+      - name: Deploy Bicep template
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.deploy == 'true' && secrets.AZURE_CREDENTIALS != '' && secrets.AZURE_CREDENTIALS != '{}'
+        run: az deployment group create --resource-group rg-devops-lab --template-file main.bicep --parameters @parameters.json
 
