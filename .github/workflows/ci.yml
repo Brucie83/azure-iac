@@ -107,7 +107,7 @@ jobs:
 
           az deployment group what-if \
             --resource-group "$RESOURCE_GROUP" \
-            --template-file main.bicep
+            --template-file main.bicep \
             --parameters @main.parameters.json
 
 
