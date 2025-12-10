@@ -3,7 +3,12 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "adminPassword": {
-      "value": ""
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/4d588b19-edb6-49f5-b7c6-ecb4663a1a74/resourceGroups/rg-devops-lab/providers/Microsoft.KeyVault/vaults/kv-devops-lab-001"
+        },
+        "secretName": "vmAdminPassword"
+      }
     }
   }
 }
