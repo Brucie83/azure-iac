@@ -18,7 +18,7 @@ param subnetAddress string = '10.0.1.0/24'
 param vmName string = 'dev-vm-01'
 
 @description('Tamaño de la vm')
-param vmSize string = 'Standard_B2ms'
+param vmSize string = 'Standard_DC2s_v3'
 
 @description('Nombre del admin de la vm')
 param adminUsername string = 'azureuser'
@@ -77,7 +77,7 @@ module keyvault './modules/keyvault.bicep' = {
 module storage './modules/storage.bicep' = {
   name: 'deploy-sa'
   params: {
-    storageName: 'devvmsa01'
+    storageName: 'devsa01'
     location: location
   }
 }
