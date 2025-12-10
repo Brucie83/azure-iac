@@ -75,7 +75,7 @@ module keyvault './modules/keyvault.bicep' = {
 }
 
 module storage './modules/storage.bicep' = {
-  name: 'deploy-sa01'
+  name: 'deploy-sa'
   params: {
     storageName: 'devsa01'
     location: location
