@@ -13,15 +13,15 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
   identity: {
     type: 'SystemAssigned'
   }
-  securityProfile: {
-    securityType: 'ConfidentialVM'
-    uefiSettings: {
-      secureBootEnabled: true
-      vTpmEnabled: true
-    }
-  }
 
   properties: {
+    securityProfile: {
+    securityType: 'ConfidentialVM'
+      uefiSettings: {
+        secureBootEnabled: true
+        vTpmEnabled: true
+      }
+    }
     hardwareProfile: {
       vmSize: vmSize
     }
