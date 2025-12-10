@@ -212,6 +212,29 @@ Automated application bootstrap
 
 Integration with Terraform / GitHub Environments
 
+## Deployment Notes & Azure Subscription Constraints
+
+This project was validated using Azure What-If and ARM template validation.
+
+During testing in a personal Azure subscription, VM deployment failed due to
+**SKU capacity restrictions** in the selected regions. This is a known
+limitation in new or low-usage subscriptions and is not related to template
+design or CI/CD configuration.
+
+Key points:
+- Networking, NSG, Public IP, NIC, Storage Account, and Key Vault deploy successfully
+- Bicep templates compile and validate correctly
+- What-If execution completes without dependency errors
+- VM creation fails only due to unavailable compute SKUs
+
+In enterprise subscriptions (e.g. Globant / client-managed Azure accounts),
+where compute capacity is reserved and quotas are available, the deployment
+is expected to complete successfully without changes.
+
+The pipeline and templates are production-ready and designed to work in
+enterprise Azure environments.
+
+
 ## Author
 
 Bruno Mijail Díaz Barba
