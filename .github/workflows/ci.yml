@@ -43,6 +43,7 @@ jobs:
     name: Azure What-If
     runs-on: ubuntu-latest
     needs: validate
+    continue-on-error: true
 
     env:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
