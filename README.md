@@ -1,31 +1,22 @@
-# Azure Infrastructure Deployment using Bicep (Modular Architecture)
+Azure Infrastructure Deployment using Bicep (Modular Architecture)
 
 This repository contains an enterprise-grade modular Infrastructure-as-Code (IaC) project built using Azure Bicep.
 It provisions a complete environment including:
 
 Virtual Network & Subnet
-
 Network Security Group (NSG)
-
 Public IP Address
-
 Network Interface (NIC)
-
 Storage Account
-
 Azure Key Vault + Secret injection
-
 Windows Server 2022 Virtual Machine
-
 Custom Script Extension (init.ps1) for post-provisioning configuration
-
 Managed Identity for the VM
-
 Boot Diagnostics
 
-This project demonstrates best practices in ARM/Bicep modularization, secret handling, dependency chaining, and reusable IaC patterns.
+This project demonstrates best practices in ARM/Bicep modularization, secret handling, dependency chaining, reusable IaC patterns, and CI/CD validation workflows.
 
-## Architecture Overview
+Architecture Overview
 
 ```bash
 Resource Group
@@ -54,17 +45,17 @@ Resource Group
 │       └── init.ps1 (downloaded from GitHub)
 ```
 
-
-
 This modular structure ensures loose coupling, clarity, and maintainability, following cloud-native IaC standards.
 
-## Repository Structure
-```bash
+Repository Structure
 
+```bash
 azure-iac/
 │
 ├── main.bicep                # Root orchestrator
-├── parameters.json           # Deployment parameters
+├── main.parameters.json      # Deployment parameters
+├── bootstrap.bicep           # Bootstrap resources (Key Vault, initial secrets)
+├── bootstrap.parameters.json
 │
 ├── modules/
 │   ├── network.bicep         # VNet + Subnet
@@ -72,7 +63,7 @@ azure-iac/
 │   ├── publicip.bicep        # Public IP
 │   ├── nic.bicep             # NIC
 │   ├── storage.bicep         # Storage Account
-│   ├── keyvault.bicep        # Key Vault + Secret
+│   ├── keyvault.bicep        # Key Vault
 │   └── vm.bicep              # Windows Server 2022 VM
 │
 ├── scripts/
@@ -80,165 +71,161 @@ azure-iac/
 │
 └── .github/
     └── workflows/
-        └── ci.yml            # CI pipeline: validate, format, lint, build, what-if
+        └── ci.yml            # Multistage CI pipeline (validate, what-if)
 ```
-
-
-## Secret Handling (Secure by Design)
+Secret Handling (Secure by Design)
 
 Instead of passing the VM admin password directly to the VM module, this architecture follows Azure security best-practices:
 
-Password is provided only once in main.parameters.json
+Password is provided only once via parameters
 
-It is securely sent to the Key Vault module
+It is securely stored in Azure Key Vault
 
-The Key Vault creates a Secret
+The VM retrieves the password at deployment time using a Key Vault reference
 
-The VM retrieves the password securely at deployment time
-
-The VM never stores the password in the template or logs
+The password is never stored in templates, logs, or pipeline output
 
 This pattern prevents credential leakage and aligns with enterprise security policies.
 
-## Custom Script Extension (init.ps1)
+Custom Script Extension (init.ps1)
 
-The VM includes an extension that downloads and runs a PowerShell script hosted in this repository:
+The VM includes a Custom Script Extension that downloads and runs a PowerShell script hosted in this repository:
 
+```bash   
 fileUris: [
   'https://raw.githubusercontent.com/brucie83/azure-iac/main/scripts/init.ps1'
 ]
 commandToExecute: 'powershell.exe -ExecutionPolicy Unrestricted -File init.ps1'
+```
 
+This script can be extended to:
 
-You can use this script to install packages, configure services, join domains, deploy apps, etc.
+Install IIS or other roles
 
-Example behavior (modify as needed):
-
-Install IIS
-
-Write logs to Storage
+Configure services
 
 Apply security baselines
 
 Register monitoring agents
 
-## Deployment Instructions
+Perform post-provisioning automation
+
+Deployment Instructions
 
 Before deploying, ensure you are logged into your Azure subscription:
+
 ```bash
 az login
 az account set --subscription "<SUBSCRIPTION-ID>"
 ```
 
+
 1 Create a resource group
+
 ```bash
 az group create \
   --name rg-devops-lab \
   --location eastus
 ```
 
+
 2 Generate the parameters file
+
 ```bash
 az bicep generate-params -f main.bicep --out-file main.parameters.json
 ```
 
-Fill in your admin password:
-```json
-{
-  "parameters": {
-    "adminPassword": {
-      "value": "YourStrongPassword123!"
-    }
-  }
-}
-```
 
 3 Deploy the infrastructure
+
 ```bash
 az deployment group create \
   --resource-group rg-devops-lab \
   --template-file main.bicep \
   --parameters @main.parameters.json
 ```
-## Validation & What-If
-Build and validate Bicep
+Validation & What-If
+
+Validate and compile the Bicep templates:
+
 ```bash
 az bicep build -f main.bicep
 ```
 
-What-If (Preview changes)
+Preview infrastructure changes without creating resources:
+
 ```bash
 az deployment group what-if \
   --resource-group rg-devops-lab \
   --template-file main.bicep \
-  --parameters @parameters.json
+  --parameters @main.parameters.json
 ```
 
-## GitHub Actions CI Pipeline (Already Implemented)
+GitHub Actions CI Pipeline (Multistage)
 
-The repository includes a CI workflow (ci.yml) that performs:
+The repository includes a multistage GitHub Actions pipeline defined in ci.yml, designed to follow enterprise CI/CD practices.
 
-✔ Bicep formatting
-✔ Bicep linting
-✔ Template compilation to ARM JSON
-✔ Azure What-If with support for an empty secret {}
-✔ Conditional execution when AZURE_CREDENTIALS is not defined
+Implemented stages:
 
-This allows the project to be developed and validated even without an Azure subscription, avoiding pipeline failures.
+Stage 1 - Validate
 
-## Best Practices Implemented
+Bicep formatting
+
+Bicep linting
+
+Template compilation
+
+No Azure login required
+
+Stage 2 - Azure What-If
+
+Runs after successful validation
+
+Authenticates using a Service Principal
+
+Executes Azure What-If
+
+Does not create resources
+
+Non-blocking for environment-specific capacity constraints
+
+This design allows safe validation of infrastructure changes in pull requests without requiring full deployment.
+
+Best Practices Implemented
 
 ✔ Modular Bicep architecture
-✔ Secret handling with Key Vault
-✔ Strong separation of modules and parameters
-✔ Dependency chaining through module outputs
-✔ Reusable VM automation with Custom Script Extension
-✔ Managed Identity enabled
-✔ Production-ready naming conventions
-✔ Boot Diagnostics configured
-✔ CI pipeline with formatting/linting/what-if
+✔ Secure secret handling with Key Vault
+✔ Separation of bootstrap and workload deployments
+✔ Dependency chaining via module outputs
+✔ Managed Identity usage
+✔ Boot Diagnostics enabled
+✔ Custom Script Extension automation
+✔ Multistage CI pipeline with validation and What-If
+✔ Environment-agnostic pipeline design
 
-## Next Improvements (optional)
-
-Add optional deployment workflow (workflow_dispatch)
-
-Multi-environment parameters (dev/stage/prod)
-
-Environment-driven NSG rules
-
-Load Balancer / App Gateway modules
-
-Automated application bootstrap
-
-Integration with Terraform / GitHub Environments
-
-## Deployment Notes & Azure Subscription Constraints
+Deployment Notes & Azure Subscription Constraints
 
 This project was validated using Azure What-If and ARM template validation.
 
-During testing in a personal Azure subscription, VM deployment failed due to
-**SKU capacity restrictions** in the selected regions. This is a known
-limitation in new or low-usage subscriptions and is not related to template
-design or CI/CD configuration.
+During testing in personal or low-usage Azure subscriptions, VM deployment may fail due to SKU capacity restrictions in certain regions.
+This behavior is related to subscription capacity and not to template design or CI/CD configuration.
 
 Key points:
-- Networking, NSG, Public IP, NIC, Storage Account, and Key Vault deploy successfully
-- Bicep templates compile and validate correctly
-- What-If execution completes without dependency errors
-- VM creation fails only due to unavailable compute SKUs
 
-In enterprise subscriptions (e.g. client-managed Azure accounts),
-where compute capacity is reserved and quotas are available, the deployment
-is expected to complete successfully without changes.
+Infrastructure components deploy and validate correctly
 
-The pipeline and templates are production-ready and designed to work in
-enterprise Azure environments.
+Templates compile successfully
 
+What-If completes without dependency errors
 
-## Author
+VM creation may fail only due to unavailable compute SKUs
+
+The pipeline and templates are designed to operate correctly in standard enterprise Azure environments where capacity is available.
+
+Author
 
 Bruno Mijail Díaz Barba
 Cloud & DevOps Engineer — Azure | Bicep | Terraform | CI/CD
-GitHub: github.com/brucie83
+GitHub: https://github.com/brucie83
 
-## Give this repo a star if it helped you!
+Give this repo a star if it helped you
