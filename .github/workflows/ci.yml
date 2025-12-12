@@ -89,5 +89,5 @@ jobs:
         run: |
           az deployment group what-if \
             --resource-group rg-devops-lab \
-            --template-file main.json \
+            --template-file main.bicep \
             --parameters @main.parameters.json
