@@ -1,4 +1,4 @@
-name: CI - Azure Bicep IaC
+name: CI - Azure IaC (Multistage)
 
 on:
   push:
@@ -6,15 +6,12 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
-    inputs:
-        deploy:
-            description: "Run Deployment"
-            required: false
-            default: "false"
 
 jobs:
-  build:
+  validate:
+    name: Validate Bicep
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,104 +19,22 @@ jobs:
       - name: Install Azure CLI
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-           
-      - name: Install bicep CLI
+
+      - name: install Bicep CLI
         run: |
           az bicep install
           az bicep version
 
-      - name: Validate Bicep syntax
+      - name: Build main.bicep (Syntax Validation)
         run: |
-          az bicep build -f main.bicep --outfile main.json
+          az bicep build \
+            --file main.bicep \
+            --outfile main.json
 
-      - name: Upload ARM Template Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: arm-template
-          path: main.json
-
-      - name: Install standalone Bicep CLI for linting
+      - name: Format Bicep files
         run: |
-          LATEST_URL=$(curl -s https://api.github.com/repos/Azure/bicep/releases/latest \
-            | grep "browser_download_url" \
-            | grep "bicep-linux-x64\"" \
-            | cut -d '"' -f 4)
-
-          echo "Downloading: $LATEST_URL"
-          wget "$LATEST_URL" -O bicep
-          chmod +x bicep
-          sudo mv bicep /usr/local/bin/bicep
-          bicep --version
-
-
-
-      - name: Fromat Bicep files
-        run: |
-          find . -name "*.bicep" -exec bicep format {} \;
-
+          az bicep format --file main.bicep
+    
       - name: Run Bicep Linter
         run: |
-          az bicep build --file main.bicep --stdout > /dev/null
-          echo "Running Bicep linter..."
           bicep lint main.bicep
-
-      - name: Azure What-if (Dry Run)
-        env:
-          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-        run: |
-          echo "Validando si existe AZURE_CREDENTIALS..."
-
-          # Detectar vacío, null, o JSON "{}"
-          if [ -z "$AZURE_CREDENTIALS" ] || [ "$AZURE_CREDENTIALS" = "{}" ]; then
-            echo "→ AZURE_CREDENTIALS está vacío o no configurado. Saltando What-If."
-            exit 0
-          fi
-
-          echo "→ Se detectó un JSON. Procediendo con What-If."
-
-          # Instalar jq si no existe
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update -y && sudo apt-get install -y jq
-          fi
-
-          # Validar si el JSON es válido
-          if ! echo "$AZURE_CREDENTIALS" | jq empty 2>/dev/null; then
-            echo "→ El valor en AZURE_CREDENTIALS NO es JSON válido. Saltando What-If."
-            exit 0
-          fi
-
-          # Extraer valores
-          CLIENT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientId')
-          CLIENT_SECRET=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientSecret')
-          TENANT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId')
-          SUBSCRIPTION_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.subscriptionId')
-          RESOURCE_GROUP="rg-devops-lab"
-
-
-          echo "Ejecutando What-If en RG: $RESOURCE_GROUP"
-
-          az login --service-principal \
-            -u "$CLIENT_ID" \
-            -p "$CLIENT_SECRET" \
-            --tenant "$TENANT_ID"
-
-          az account set --subscription "$SUBSCRIPTION_ID"
-
-          az deployment group what-if \
-            --resource-group "$RESOURCE_GROUP" \
-            --template-file main.bicep \
-            --parameters @main.parameters.json
-
-
-
-      - name: Deploy Bicep template
-        if: |
-          github.ref == 'refs/heads/main' &&
-          (
-            github.event_name == 'push' ||
-            (github.event_name == 'workflow_dispatch' && inputs.deploy == 'true')
-          )
-        run: az deployment group create --resource-group rg-devops-lab --template-file main.bicep --parameters @main.parameters.json
-
-
-
