@@ -38,3 +38,56 @@ jobs:
       - name: Run Bicep Linter
         run: |
           bicep lint main.bicep
+
+  whatif:
+    name: Azure What-If
+    runs-on: ubuntu-latest
+    needs: validate
+
+    env:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Install Bicep CLI
+        run: |
+          az bicep install
+          az bicep version
+
+      - name: Validate AZURE_CREDENTIALS exists
+        run: |
+          if [ -z "$AZURE_CREDENTIALS" ] || [ "$AZURE_CREDENTIALS" = "{}" ]; then
+            echo "AZURE_CREDENTIALS not configured. Skipping What-If"
+            exit 0
+          fi
+
+      - name: Azure login
+        run: |
+          echo "$AZURE_CREDENTIALS" > creds.json
+
+
+          CLIENT_ID=$(jq -r .clientId creds.json)
+          CLIENT_SECRET=$(jq -r .clientSecret creds.json)
+          TENANT_ID=$(jq -r .tenantId creds.json)
+          SUBSCRIPTION_ID=$(jq -r .subscriptionId creds.json)
+
+          az login --service-principal \
+            -u "$CLIENT_ID" \
+            -p "$CLIENT_SECRET" \
+            --tenant "$TENANT_ID"
+
+          az account set --subscription "$SUBSCRIPTION_ID"
+
+
+      - name: Run Azure What-If
+        run: |
+          az deployment group what-if \
+            --resource-group rg-devops-lab \
+            --template-file main.json \
+            --parameters @main.parameters.json
