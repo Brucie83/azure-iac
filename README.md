@@ -1,22 +1,24 @@
-Azure Infrastructure Deployment using Bicep (Modular Architecture)
+# Azure Infrastructure Deployment using Bicep (Modular Architecture)
 
-This repository contains an enterprise-grade modular Infrastructure-as-Code (IaC) project built using Azure Bicep.
+This repository contains an **enterprise-grade modular Infrastructure-as-Code (IaC)** project built using **Azure Bicep**.
 It provisions a complete environment including:
 
-Virtual Network & Subnet
-Network Security Group (NSG)
-Public IP Address
-Network Interface (NIC)
-Storage Account
-Azure Key Vault + Secret injection
-Windows Server 2022 Virtual Machine
-Custom Script Extension (init.ps1) for post-provisioning configuration
-Managed Identity for the VM
-Boot Diagnostics
+* Virtual Network & Subnet
+* Network Security Group (NSG)
+* Public IP Address
+* Network Interface (NIC)
+* Storage Account
+* Azure Key Vault + Secret injection
+* Windows Server 2022 Virtual Machine
+* Custom Script Extension (`init.ps1`) for post-provisioning configuration
+* Managed Identity for the VM
+* Boot Diagnostics
 
-This project demonstrates best practices in ARM/Bicep modularization, secret handling, dependency chaining, reusable IaC patterns, and CI/CD validation workflows.
+This project demonstrates **best practices in ARM/Bicep modularization, secure secret handling, dependency chaining, reusable IaC patterns, and enterprise CI/CD workflows**.
 
-Architecture Overview
+---
+
+## Architecture Overview
 
 ```bash
 Resource Group
@@ -45,9 +47,66 @@ Resource Group
 │       └── init.ps1 (downloaded from GitHub)
 ```
 
-This modular structure ensures loose coupling, clarity, and maintainability, following cloud-native IaC standards.
+This modular structure ensures **loose coupling, clarity, and long-term maintainability**, following cloud-native IaC standards.
 
-Repository Structure
+---
+
+## CI/CD Workflow Overview (Enterprise Pattern)
+
+This repository implements a **clear separation between Continuous Integration (CI) and Continuous Deployment (CD)** using GitHub Actions and protected environments.
+
+### CI/CD Flow Diagram
+
+```text
+┌────────────┐
+│   Push /   │
+│ Pull Req   │
+└─────┬──────┘
+      │
+      ▼
+┌────────────┐
+│  Validate  │
+│  (Bicep)   │
+│            │
+│ - build    │
+│ - format   │
+│ - lint     │
+└─────┬──────┘
+      │
+      ▼
+┌────────────┐
+│  What-If   │
+│  (Azure)   │
+│            │
+│ - preview  │
+│ - non-blk  │
+└─────┬──────┘
+      │
+      │  (Manual trigger only)
+      ▼
+┌────────────┐
+│ Deploy Dev │◄─────────────── Run workflow (deploy=true)
+│            │
+│ Env: dev   │
+│ Approval   │
+└────────────┘
+```
+
+### Key Characteristics
+
+* **CI runs automatically** on `push` and `pull_request`
+* **CD is manual only** via `workflow_dispatch`
+* Deployment requires:
+
+  * Explicit input: `deploy=true`
+  * Manual approval via GitHub Environment (`dev`)
+* Azure What-If is **informational and non-blocking**, allowing flexibility in constrained subscriptions
+
+This design mirrors **real enterprise delivery pipelines**, where CI is automated and CD is gated by human approval.
+
+---
+
+## Repository Structure
 
 ```bash
 azure-iac/
@@ -71,27 +130,29 @@ azure-iac/
 │
 └── .github/
     └── workflows/
-        └── ci.yml            # Multistage CI pipeline (validate, what-if)
+        └── ci.yml            # Enterprise CI/CD pipeline
 ```
-Secret Handling (Secure by Design)
 
-Instead of passing the VM admin password directly to the VM module, this architecture follows Azure security best-practices:
+---
 
-Password is provided only once via parameters
+## Secret Handling (Secure by Design)
 
-It is securely stored in Azure Key Vault
+Instead of passing the VM admin password directly to the VM module, this architecture follows **Azure security best practices**:
 
-The VM retrieves the password at deployment time using a Key Vault reference
-
-The password is never stored in templates, logs, or pipeline output
+* Password is provided only once via parameters
+* It is securely stored in **Azure Key Vault**
+* The VM retrieves the password at deployment time using a **Key Vault reference**
+* The password is never stored in templates, logs, or pipeline output
 
 This pattern prevents credential leakage and aligns with enterprise security policies.
 
-Custom Script Extension (init.ps1)
+---
+
+## Custom Script Extension (`init.ps1`)
 
 The VM includes a Custom Script Extension that downloads and runs a PowerShell script hosted in this repository:
 
-```bash   
+```bash
 fileUris: [
   'https://raw.githubusercontent.com/brucie83/azure-iac/main/scripts/init.ps1'
 ]
@@ -100,17 +161,15 @@ commandToExecute: 'powershell.exe -ExecutionPolicy Unrestricted -File init.ps1'
 
 This script can be extended to:
 
-Install IIS or other roles
+* Install IIS or other roles
+* Configure services
+* Apply security baselines
+* Register monitoring agents
+* Perform post-provisioning automation
 
-Configure services
+---
 
-Apply security baselines
-
-Register monitoring agents
-
-Perform post-provisioning automation
-
-Deployment Instructions
+## Deployment Instructions
 
 Before deploying, ensure you are logged into your Azure subscription:
 
@@ -119,8 +178,7 @@ az login
 az account set --subscription "<SUBSCRIPTION-ID>"
 ```
 
-
-1 Create a resource group
+### 1. Create a resource group
 
 ```bash
 az group create \
@@ -128,15 +186,13 @@ az group create \
   --location eastus
 ```
 
-
-2 Generate the parameters file
+### 2. Generate the parameters file
 
 ```bash
 az bicep generate-params -f main.bicep --out-file main.parameters.json
 ```
 
-
-3 Deploy the infrastructure
+### 3. Deploy the infrastructure
 
 ```bash
 az deployment group create \
@@ -144,7 +200,10 @@ az deployment group create \
   --template-file main.bicep \
   --parameters @main.parameters.json
 ```
-Validation & What-If
+
+---
+
+## Validation & What-If
 
 Validate and compile the Bicep templates:
 
@@ -161,37 +220,38 @@ az deployment group what-if \
   --parameters @main.parameters.json
 ```
 
-GitHub Actions CI Pipeline (Multistage)
+---
 
-The repository includes a multistage GitHub Actions pipeline defined in ci.yml, designed to follow enterprise CI/CD practices.
+## GitHub Actions CI Pipeline (Multistage)
 
-Implemented stages:
+The repository includes a **multistage GitHub Actions pipeline** designed to follow enterprise CI/CD practices.
 
-Stage 1 - Validate
+### Implemented Stages
 
-Bicep formatting
+**Stage 1 – Validate (CI)**
 
-Bicep linting
+* Bicep formatting
+* Bicep linting
+* Template compilation
+* No Azure authentication required
 
-Template compilation
+**Stage 2 – Azure What-If (CI)**
 
-No Azure login required
+* Runs after validation
+* Authenticates using a Service Principal
+* Executes Azure What-If
+* Does not create resources
+* Non-blocking for environment or subscription constraints
 
-Stage 2 - Azure What-If
+**Stage 3 – Deploy (CD)**
 
-Runs after successful validation
+* Triggered manually only
+* Requires explicit input (`deploy=true`)
+* Protected by GitHub Environment approval (`dev`)
 
-Authenticates using a Service Principal
+---
 
-Executes Azure What-If
-
-Does not create resources
-
-Non-blocking for environment-specific capacity constraints
-
-This design allows safe validation of infrastructure changes in pull requests without requiring full deployment.
-
-Best Practices Implemented
+## Best Practices Implemented
 
 ✔ Modular Bicep architecture
 ✔ Secure secret handling with Key Vault
@@ -200,32 +260,33 @@ Best Practices Implemented
 ✔ Managed Identity usage
 ✔ Boot Diagnostics enabled
 ✔ Custom Script Extension automation
-✔ Multistage CI pipeline with validation and What-If
+✔ Enterprise CI/CD with CI vs CD separation
+✔ Manual deployment approval gates
 ✔ Environment-agnostic pipeline design
 
-Deployment Notes & Azure Subscription Constraints
+---
+
+## Deployment Notes & Azure Subscription Constraints
 
 This project was validated using Azure What-If and ARM template validation.
 
-During testing in personal or low-usage Azure subscriptions, VM deployment may fail due to SKU capacity restrictions in certain regions.
-This behavior is related to subscription capacity and not to template design or CI/CD configuration.
+When tested in **personal or low-usage Azure subscriptions**, VM deployment may fail due to **SKU capacity restrictions** in certain regions.
 
 Key points:
 
-Infrastructure components deploy and validate correctly
+* Infrastructure components deploy and validate correctly
+* Templates compile successfully
+* What-If completes without dependency errors
+* VM creation may fail only due to unavailable compute SKUs
 
-Templates compile successfully
+The pipeline and templates are designed to operate correctly in **standard enterprise Azure environments** where capacity is available.
 
-What-If completes without dependency errors
+---
 
-VM creation may fail only due to unavailable compute SKUs
+## Author
 
-The pipeline and templates are designed to operate correctly in standard enterprise Azure environments where capacity is available.
-
-Author
-
-Bruno Mijail Díaz Barba
+**Bruno Mijail Díaz Barba**
 Cloud & DevOps Engineer — Azure | Bicep | Terraform | CI/CD
-GitHub: https://github.com/brucie83
+GitHub: [https://github.com/brucie83]
 
-Give this repo a star if it helped you
+⭐ Give this repo a star if it helped you
