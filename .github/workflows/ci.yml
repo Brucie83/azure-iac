@@ -9,7 +9,7 @@ on:
     inputs:
       deploy:
         description: "Deploy to Dev"
-        required: false
+        required: true
         default: "false"
 
 jobs:
@@ -102,6 +102,11 @@ jobs:
     name: Deploy to Dev
     runs-on: ubuntu-latest
     needs: [validate, whatif]
+
+    env: 
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+
     if: ${{ github.event_name == 'workflow_dispatch'  && inputs.deploy == 'true' }}
 
     environment:
@@ -119,7 +124,7 @@ jobs:
         run: |
           echo "$AZURE_CREDENTIALS" > creds.json
 
-          az login --service principal \
+          az login --service-principal \
            --username $(jq -r .clientId creds.json) \
            --password $(jq -r .clientSecret creds.json) \
            --tenant $(jq -r .tenantId creds.json)
