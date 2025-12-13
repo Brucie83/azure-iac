@@ -251,6 +251,31 @@ The repository includes a **multistage GitHub Actions pipeline** designed to fol
 
 ---
 
+---
+
+## Security & Identity Notes (Enterprise Context)
+
+This project currently authenticates to Azure using a Service Principal stored as a GitHub Secret.
+This approach was chosen due to limited access to the Azure tenant (borrowed subscription), where identity configuration
+(App Registrations, Federated Credentials) is not available.
+
+In a full enterprise Azure environment, this authentication model would be replaced with
+**GitHub Actions OIDC (Workload Identity Federation)** to eliminate long-lived credentials and enforce
+the principle of least privilege.
+
+Planned enterprise improvements include:
+
+- Replace static Service Principal secrets with OIDC-based authentication
+- Scope permissions at Resource Group level instead of subscription-wide access
+- Remove long-lived credentials from GitHub Secrets
+- Use per-environment identities (dev / prod) for improved auditability
+- Preserve the existing CI/CD flow while strengthening security posture
+
+The current pipeline structure is intentionally designed to support this transition
+without requiring changes to the overall CI/CD workflow.
+
+---
+
 ## Best Practices Implemented
 
 ✔ Modular Bicep architecture
