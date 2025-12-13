@@ -101,7 +101,7 @@ jobs:
   deploy-dev:
     name: Deploy to Dev
     runs-on: ubuntu-latest
-    needs: [validate, whatif]
+    needs: validate
 
     env: 
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
